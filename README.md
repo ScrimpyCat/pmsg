@@ -6,8 +6,8 @@ LLDB and GDB scripts for pmsg command. The command displays the current Objectiv
 
 The command should be executed either when at a message send (objc_msgSend or variant) or whenever all the correct aspects are still initialized correctly (at the beginning of the method).
 
-To load the script in GDB: `(gdb) source pmsg-gdb`
-To load the script in LLDB: `(lldb) command script import pmsg-lldb.py`
+To load the script in GDB: `(gdb) source pmsg_gdb`
+To load the script in LLDB: `(lldb) command script import pmsg_lldb.py`
 
 Example usage and output: 
 
