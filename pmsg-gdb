@@ -1,0 +1,195 @@
+define pmsg
+set $backupxmm0 = $xmm0
+set $outmsg = (void*)[NSClassFromString(@"NSMutableString") stringWithCapacity: 256]
+call (void)[$outmsg appendFormat: @"[%@", $rdi]
+
+if ($rdi != 0)
+set $methodsig = (void*)[$rdi methodSignatureForSelector: $rsi]
+else
+#default to NSObject
+set $methodsig = (void*)[NSClassFromString(@"NSObject") methodSignatureForSelector: $rsi]
+end
+
+set $selector = (void*)[NSStringFromSelector($rsi) componentsSeparatedByString: @":"]
+
+if (2 == [$methodsig numberOfArguments])
+call (void)[$outmsg appendFormat: @" %@", (void*)[$selector objectAtIndex: 0]]
+else
+
+set $loop = 2
+set $ints = 2
+set $floats = 0
+while ($loop < [$methodsig numberOfArguments])
+set $type = (const char*)[$methodsig getArgumentTypeAtIndex: $loop]
+call (void)[$outmsg appendFormat: @" %@:", (void*)[$selector objectAtIndex: $loop-2]]
+
+
+if ($ints == 2)
+set $currentObjecti = $rdx
+else
+if ($ints == 3)
+set $currentObjecti = $rcx
+else
+if ($ints == 4)
+set $currentObjecti = $r8
+else
+if ($ints == 5)
+set $currentObjecti = $r9
+else
+set $currentObjecti = 0
+end
+end
+end
+end
+
+if ($floats == 0)
+set $currentObjectf = $xmm0
+else
+if ($floats == 1)
+set $currentObjectf = $xmm1
+else
+if ($floats == 2)
+set $currentObjectf = $xmm2
+else
+if ($floats == 3)
+set $currentObjectf = $xmm3
+else
+if ($floats == 4)
+set $currentObjectf = $xmm4
+else
+if ($floats == 5)
+set $currentObjectf = $xmm5
+else
+if ($floats == 6)
+set $currentObjectf = $xmm6
+else
+if ($floats == 7)
+set $currentObjectf = $xmm7
+else
+set $currentObjectf = 0
+end
+end
+end
+end
+end
+end
+end
+end
+
+if (*$type == '@')
+if ((int)[$currentObjecti isKindOfClass: (void*)NSClassFromString(@"NSString")] == 1)
+set $ints = $ints + 1
+call (void)[$outmsg appendFormat: @"@\"%@\"", (void*)$currentObjecti]
+else
+set $ints = $ints + 1
+call (void)[$outmsg appendFormat: @"%@", (void*)$currentObjecti]
+end
+else
+if (*$type == '^')
+set $ints = $ints + 1
+call (void)[$outmsg appendFormat: @"%p", (void*)$currentObjecti]
+else
+if (*$type == '*')
+set $ints = $ints + 1
+call (void)[$outmsg appendFormat: @"\"%s\"", (char*)$currentObjecti]
+else
+if (*$type == 'i')
+set $ints = $ints + 1
+call (void)[$outmsg appendFormat: @"%d", (int)$currentObjecti]
+else
+if (*$type == 'c')
+set $ints = $ints + 1
+call (void)[$outmsg appendFormat: @"%d", (char)$currentObjecti]
+else
+if (*$type == 's')
+set $ints = $ints + 1
+call (void)[$outmsg appendFormat: @"%d", (short)$currentObjecti]
+else
+if (*$type == 'l')
+set $ints = $ints + 1
+call (void)[$outmsg appendFormat: @"%ld", (long)$currentObjecti]
+else
+if (*$type == 'q')
+set $ints = $ints + 1
+call (void)[$outmsg appendFormat: @"%lld", (long long)$currentObjecti]
+else
+if (*$type == 'C')
+set $ints = $ints + 1
+call (void)[$outmsg appendFormat: @"%u", (unsigned char)$currentObjecti]
+else
+if (*$type == 'I')
+set $ints = $ints + 1
+call (void)[$outmsg appendFormat: @"%u", (unsigned int)$currentObjecti]
+else
+if (*$type == 'S')
+set $ints = $ints + 1
+call (void)[$outmsg appendFormat: @"%u", (unsigned short)$currentObjecti]
+else
+if (*$type == 'L')
+set $ints = $ints + 1
+call (void)[$outmsg appendFormat: @"%lu", (unsigned long)$currentObjecti]
+else
+if (*$type == 'Q')
+set $ints = $ints + 1
+call (void)[$outmsg appendFormat: @"%llu", (unsigned long long)$currentObjecti]
+else
+if (*$type == 'B')
+set $ints = $ints + 1
+call (void)[$outmsg appendFormat: @"%d", (int)$currentObjecti]
+else
+if (*$type == '#')
+set $ints = $ints + 1
+call (void)[$outmsg appendFormat: @"%@", (void*)$currentObjecti]
+else
+if (*$type == ':')
+set $ints = $ints + 1
+call (void)[$outmsg appendFormat: @"@selector(%@)", (void*)NSStringFromSelector($currentObjecti)]
+else
+if (*$type == 'f')
+set $xmm0 = $currentObjectf
+set $floats = $floats + 1
+set $tf = (void*)[NSClassFromString(@"NSNumber") numberWithFloat: $currentObjectf]
+call (void)[$outmsg appendFormat: @"%@f", $tf]
+else
+if (*$type == 'd')
+set $xmm0 = $currentObjectf
+set $floats = $floats + 1
+set $tf = (void*)[NSClassFromString(@"NSNumber") numberWithDouble: $currentObjectf]
+call (void)[$outmsg appendFormat: @"%@", $tf]
+else
+#Just assume it would be an int
+set $ints = $ints + 1
+printf "%s\n",$type
+end
+end
+end
+end
+end
+end
+end
+end
+end
+end
+end
+end
+end
+end
+end
+end
+end
+end
+
+set $loop = $loop + 1
+end
+end
+
+call (void)[$outmsg appendString: @"]"]
+
+po $outmsg
+
+set $xmm0 = $backupxmm0
+end
+
+document pmsg
+Displays information about the call to objc_msgSend (use when at call or at beginning of method).
+end
