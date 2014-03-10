@@ -1,4 +1,4 @@
-#command script import pmsg-lldb.py
+#command script import pmsg_lldb.py
 import lldb
 import commands
 import optparse
@@ -135,5 +135,5 @@ def pmsg(debugger, command, result, internal_dict):
 
 # And the initialization code to add your commands 
 def __lldb_init_module(debugger, internal_dict):
-    debugger.HandleCommand('command script add -f pmsg-lldb.pmsg pmsg')
+    debugger.HandleCommand('command script add -f pmsg_lldb.pmsg pmsg')
     print 'The "pmsg" python command has been installed and is ready for use.'
