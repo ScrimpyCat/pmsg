@@ -221,7 +221,8 @@ def pmsg(debugger, command, result, internal_dict):
                     msg += getDescription(frame, '[NSNumber numberWithDouble: ((double __attribute__((ext_vector_type(2))))$' + currentObjectf.GetName() + ')[0]]')
             else:
                 #Just assume it would be an integer
-                ints += 1
+                if currentObjecti.__class__ == StackArgument: stackptr += 8
+                else: ints += 1
                 print '(' + str(i-2) + ') Unsupported type:', argtype
 
 
