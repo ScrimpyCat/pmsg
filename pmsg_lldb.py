@@ -65,6 +65,8 @@ def pmsg(debugger, command, result, internal_dict):
             else:
                 currentObjectf = None
 
+            if currentObjectf == None or currentObjecti == None: continue
+
             if argtype[0] == '@':
                 ints += 1
                 obj = str(currentObjecti.GetValueAsUnsigned())
