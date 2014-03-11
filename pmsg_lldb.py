@@ -115,7 +115,7 @@ def pmsg(debugger, command, result, internal_dict):
                 msg += str(currentObjecti.GetValueAsUnsigned())
             elif argtype[0] == 'B':
                 ints += 1
-                msg += str(currentObjecti.GetValueAsUnsigned())
+                msg += 'false' if currentObjecti.GetValueAsUnsigned() == 0 else 'true'
             elif argtype[0] == '#':
                 ints += 1
                 cls = str(currentObjecti.GetValueAsUnsigned())
