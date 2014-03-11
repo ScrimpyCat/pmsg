@@ -207,10 +207,10 @@ def pmsg(debugger, command, result, internal_dict):
                 msg += ('@selector(' + s.strip('"') + ')') if s is not None else '(null)'
             elif argtype[0] == 'f':
                 floats += 1
-                msg += getDescription(frame, '[NSNumber numberWithFloat: ((float __attribute__((ext_vector_type(4))))$xmm0)[0]]')
+                msg += getDescription(frame, '[NSNumber numberWithFloat: ((float __attribute__((ext_vector_type(4))))$' + currentObjectf.GetName() + ')[0]]')
             elif argtype[0] == 'd':
                 floats += 1
-                msg += getDescription(frame, '[NSNumber numberWithDouble: ((double __attribute__((ext_vector_type(2))))$xmm0)[0]]')
+                msg += getDescription(frame, '[NSNumber numberWithDouble: ((double __attribute__((ext_vector_type(2))))$' + currentObjectf.GetName() + ')[0]]')
             else:
                 #Just assume it would be an integer
                 ints += 1
