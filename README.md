@@ -47,7 +47,7 @@ Both scripts are incomplete at the moment. The LLDB script will be updated over 
 Currently missing features:
  * GDB/LLDB: No support for structures or unions
  * GDB/LLDB: Does not allow for arguments on the stack
- * GDB/LLDB: Won't be able to process arguments marked with certain qualifiers (const, byref, etc.)
+ * GDB: Won't be able to process arguments marked with certain qualifiers (const, byref, etc.)
  * GDB/LLDB: Won't display the arguments in a varadic function
  * GDB/LLDB: Doesn't support all message send variants.
  * GDB/LLDB: Other architectures besides x86_64

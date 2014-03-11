@@ -10,6 +10,10 @@ def getDescription(frame, expr):
     return desc.strip('"')
 
 
+def stripTypeQualifiers(str):
+    return str.lstrip('rnNoORV')
+
+
 def pmsg(debugger, command, result, internal_dict):
     frame = debugger.GetSelectedTarget().GetProcess().GetSelectedThread().GetSelectedFrame()
     
@@ -29,7 +33,7 @@ def pmsg(debugger, command, result, internal_dict):
         floats = 0
         for i in range(2,argcount):
             msg += ' ' + getDescription(frame, '[' + str(selector.GetValueAsUnsigned()) + ' objectAtIndex: ' + str(i-2) + ']') + ':'
-            argtype = frame.EvaluateExpression('(char*)[' + str(methodsig.GetValueAsUnsigned()) + ' getArgumentTypeAtIndex: ' + str(i) + ']').GetSummary().strip('"')
+            argtype = stripTypeQualifiers(frame.EvaluateExpression('(char*)[' + str(methodsig.GetValueAsUnsigned()) + ' getArgumentTypeAtIndex: ' + str(i) + ']').GetSummary().strip('"'))
             
             if ints == 2:
                 currentObjecti = regs.GetChildMemberWithName('rdx')
