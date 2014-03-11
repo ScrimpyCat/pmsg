@@ -4,6 +4,16 @@ import commands
 import optparse
 import shlex
 
+
+class StackArgument:
+    def __init__(self, frame, index):
+        self.index = index
+        self.frame = frame
+
+    def GetValueAs(self, type):
+        return self.frame.EvaluateExpression('*(' + type + '*)($rsp+' + str(self.index) + ')').value
+        
+
 def getDescription(frame, expr):
     desc = frame.EvaluateExpression('(char*)[[' + str(expr) + ' description] UTF8String]').GetSummary()
     if desc is None: return '(null)'
@@ -29,6 +39,7 @@ def pmsg(debugger, command, result, internal_dict):
     if argcount == 2:
         msg += ' ' + getDescription(frame, '[' + str(selector.GetValueAsUnsigned()) + ' objectAtIndex: 0]')
     else:
+        stackptr = 0
         ints = 2
         floats = 0
         for i in range(2,argcount):
@@ -44,7 +55,7 @@ def pmsg(debugger, command, result, internal_dict):
             elif ints == 5:
                 currentObjecti = regs.GetChildMemberWithName('r9')
             else:
-                currentObjecti = None
+                currentObjecti = StackArgument(frame, stackptr)
 
             if floats == 0:
                 currentObjectf = fregs.GetChildMemberWithName('xmm0')
@@ -68,8 +79,13 @@ def pmsg(debugger, command, result, internal_dict):
             if currentObjectf == None or currentObjecti == None: continue
 
             if argtype[0] == '@':
-                ints += 1
-                obj = str(currentObjecti.GetValueAsUnsigned())
+                if currentObjecti.__class__ == StackArgument:
+                    stackptr += 8
+                    obj = str(currentObjecti.GetValueAs('id'))
+                else:
+                    ints += 1
+                    obj = str(currentObjecti.GetValueAsUnsigned())
+                
                 desc = getDescription(frame, obj)
 
                 if frame.EvaluateExpression('(int)[' + obj + ' isKindOfClass: [NSString class]]').GetValueAsUnsigned() == 1:
@@ -77,52 +93,117 @@ def pmsg(debugger, command, result, internal_dict):
                 else:
                     msg += desc
             elif argtype[0] == '^':
-                ints += 1
-                msg += hex(currentObjecti.GetValueAsUnsigned())
+                if currentObjecti.__class__ == StackArgument:
+                    stackptr += 8
+                    msg += hex(int(currentObjecti.GetValueAs('void*'), 16))
+                else:
+                    ints += 1
+                    msg += hex(currentObjecti.GetValueAsUnsigned())
             elif argtype[0] == '*':
-                ints += 1
-                s = frame.EvaluateExpression('(char*)' + str(currentObjecti.GetValueAsUnsigned())).GetSummary()
+                if currentObjecti.__class__ == StackArgument:
+                    stackptr += 8
+                    ptr = str(currentObjecti.GetValueAs('char*'))
+                else:
+                    ints += 1
+                    ptr = str(currentObjecti.GetValueAsUnsigned())
+
+                s = frame.EvaluateExpression('(char*)' + ptr).GetSummary()
                 msg += s if s is not None else '(null)'
             elif argtype[0] == 'i':
-                ints += 1
-                msg += str(currentObjecti.GetValueAsSigned())
+                if currentObjecti.__class__ == StackArgument:
+                    stackptr += 8
+                    msg += str(currentObjecti.GetValueAs('int'))
+                else:
+                    ints += 1
+                    msg += str(currentObjecti.GetValueAsSigned())
             elif argtype[0] == 'c':
-                ints += 1
-                msg += str(currentObjecti.GetValueAsSigned())
+                if currentObjecti.__class__ == StackArgument:
+                    stackptr += 8
+                    msg += str(currentObjecti.GetValueAs('char'))
+                else:
+                    ints += 1
+                    msg += str(currentObjecti.GetValueAsSigned())
             elif argtype[0] == 's':
-                ints += 1
-                msg += str(currentObjecti.GetValueAsSigned())
+                if currentObjecti.__class__ == StackArgument:
+                    stackptr += 8
+                    msg += str(currentObjecti.GetValueAs('short'))
+                else:
+                    ints += 1
+                    msg += str(currentObjecti.GetValueAsSigned())
             elif argtype[0] == 'l':
-                ints += 1
-                msg += str(currentObjecti.GetValueAsSigned())
+                if currentObjecti.__class__ == StackArgument:
+                    stackptr += 8
+                    msg += str(currentObjecti.GetValueAs('long'))
+                else:
+                    ints += 1
+                    msg += str(currentObjecti.GetValueAsSigned())
             elif argtype[0] == 'q':
-                ints += 1
-                msg += str(currentObjecti.GetValueAsSigned())
+                if currentObjecti.__class__ == StackArgument:
+                    stackptr += 8
+                    msg += str(currentObjecti.GetValueAs('long long'))
+                else:
+                    ints += 1
+                    msg += str(currentObjecti.GetValueAsSigned())
             elif argtype[0] == 'C':
-                ints += 1
-                msg += str(currentObjecti.GetValueAsUnsigned())
+                if currentObjecti.__class__ == StackArgument:
+                    stackptr += 8
+                    msg += str(currentObjecti.GetValueAs('unsigned char'))
+                else:
+                    ints += 1
+                    msg += str(currentObjecti.GetValueAsUnsigned())
             elif argtype[0] == 'I':
-                ints += 1
-                msg += str(currentObjecti.GetValueAsUnsigned())
+                if currentObjecti.__class__ == StackArgument:
+                    stackptr += 8
+                    msg += str(currentObjecti.GetValueAs('unsigned int'))
+                else:
+                    ints += 1
+                    msg += str(currentObjecti.GetValueAsUnsigned())
             elif argtype[0] == 'S':
-                ints += 1
-                msg += str(currentObjecti.GetValueAsUnsigned())
+                if currentObjecti.__class__ == StackArgument:
+                    stackptr += 8
+                    msg += str(currentObjecti.GetValueAs('unsigned short'))
+                else:
+                    ints += 1
+                    msg += str(currentObjecti.GetValueAsUnsigned())
             elif argtype[0] == 'L':
-                ints += 1
-                msg += str(currentObjecti.GetValueAsUnsigned())
+                if currentObjecti.__class__ == StackArgument:
+                    stackptr += 8
+                    msg += str(currentObjecti.GetValueAs('unsigned long'))
+                else:
+                    ints += 1
+                    msg += str(currentObjecti.GetValueAsUnsigned())
             elif argtype[0] == 'Q':
-                ints += 1
-                msg += str(currentObjecti.GetValueAsUnsigned())
+                if currentObjecti.__class__ == StackArgument:
+                    stackptr += 8
+                    msg += str(currentObjecti.GetValueAs('unsigned long long'))
+                else:
+                    ints += 1
+                    msg += str(currentObjecti.GetValueAsUnsigned())
             elif argtype[0] == 'B':
-                ints += 1
-                msg += 'false' if currentObjecti.GetValueAsUnsigned() == 0 else 'true'
+                if currentObjecti.__class__ == StackArgument:
+                    stackptr += 8
+                    msg += str(currentObjecti.GetValueAs('bool'))
+                else:
+                    ints += 1
+                    msg += 'false' if currentObjecti.GetValueAsUnsigned() == 0 else 'true'
             elif argtype[0] == '#':
-                ints += 1
-                cls = str(currentObjecti.GetValueAsUnsigned())
+                if currentObjecti.__class__ == StackArgument:
+                    stackptr += 8
+                    cls = str(currentObjecti.GetValueAs('Class'))
+                else:
+                    ints += 1
+                    cls = str(currentObjecti.GetValueAsUnsigned())
+                
                 msg += getDescription(frame, cls)
             elif argtype[0] == ':':
-                ints += 1
-                s = frame.EvaluateExpression('(char*)sel_getName(' + str(currentObjecti.GetValueAsUnsigned()) + ')').GetSummary()
+                if currentObjecti.__class__ == StackArgument:
+                    stackptr += 8
+                    ptr = str(currentObjecti.GetValueAs('SEL'))
+                else:
+                    ints += 1
+                    ptr = str(currentObjecti.GetValueAsUnsigned())
+                
+                s = frame.EvaluateExpression('(char*)sel_getName(' + ptr + ')').GetSummary()
                 msg += ('@selector(' + s.strip('"') + ')') if s is not None else '(null)'
             elif argtype[0] == 'f':
                 floats += 1
